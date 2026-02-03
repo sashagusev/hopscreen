@@ -1,2 +1,6 @@
 # hopscreen
-Static site for building movie theater marathons
+Static site for building movie theater marathons. Built with Claude Code. Go to your desired Fandango theater page ([example](https://www.fandango.com/amc-boston-common-19-aapnv/theater-page?format=all)), download the html, upload it here, and select the movies you want to watch.
+
+The Claude Code prompt was:
+
+*I want you to build a javscript powered static web site that identifies combinations of movies at a single movie theater that can be watched in a row. I've placed a sample html file from Fandango for a test movie theater. The app should allow uploading this file. It then parses the file and provides a list of all available movies, the maximum amount of gap time to allow between movies. When the user clicks on a single movie, timelines with the start time for that movie are shown. When the user clicks on an additional movie, timelines where all of the selected movies are watchable in a row within the maximum gap time are shown. If no timelines are available that match the constraints none are shown. An option is also available to allow timelines of subsets of the selected movies (for example, if I select movies A, B, and C the app will also show timelines with A->B or A->C only). All of the updates should happen dynamically with client-side calculations (i.e. a static site that can be hosted on github pages). The asthetic should be minimalist, Web 2.0 style, with a white background, gradients and shadows, and one eye-catching highlight color.*
