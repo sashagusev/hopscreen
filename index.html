@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HopScreen - Movie Marathon Planner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #ffffff;
+            color: #333;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 20px 24px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 20px;
+        }
+
+        .header-left {
+            flex-shrink: 0;
+        }
+
+        .main-content {
+            display: none;
+        }
+
+        .main-content.visible {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 300;
+            margin-bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
+            border: 2px dashed #ddd;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-section:hover {
+            border-color: #667eea;
+            background: linear-gradient(145deg, #f0f4ff 0%, #ffffff 100%);
+        }
+
+        .upload-section.dragover {
+            border-color: #667eea;
+            background: linear-gradient(145deg, #e8edff 0%, #f5f7ff 100%);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .upload-text {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .upload-hint {
+            color: #999;
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        /* Controls */
+        .controls {
+            display: none;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .controls.visible {
+            display: flex;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-group label {
+            font-weight: 500;
+            color: #555;
+            font-size: 0.85rem;
+        }
+
+        .control-group input[type="number"] {
+            width: 60px;
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+        }
+
+        .control-group input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #667eea;
+            cursor: pointer;
+        }
+
+        .clear-btn {
+            padding: 6px 12px;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .clear-btn:hover {
+            background: #eee;
+        }
+
+        /* Movies Sidebar */
+        .movies-section {
+            width: 280px;
+            flex-shrink: 0;
+            max-height: calc(100vh - 140px);
+            overflow-y: auto;
+            position: sticky;
+            top: 20px;
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .movies-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .movie-card {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+
+        .movie-card:hover {
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+            border-color: #667eea;
+        }
+
+        .movie-card.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+            color: #fff;
+        }
+
+        .movie-card.selected .movie-meta {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .movie-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            line-height: 1.25;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .movie-meta {
+            font-size: 0.75rem;
+            color: #888;
+            display: flex;
+            gap: 8px;
+        }
+
+        .movie-card.selected .movie-meta {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .selection-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #667eea;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Timelines Section */
+        .timelines-section {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .timelines-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .timeline-count {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .timelines-placeholder {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 60px 40px;
+            text-align: center;
+            color: #999;
+            font-size: 0.95rem;
+        }
+
+        .no-timelines {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            color: #c53030;
+            font-size: 0.9rem;
+        }
+
+        .timeline-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .timeline-card {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        .timeline-movies {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .timeline-movie {
+            background: linear-gradient(145deg, #f8f9fa 0%, #fff 100%);
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            padding: 12px 16px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .timeline-movie-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+            color: #333;
+        }
+
+        .timeline-movie-time {
+            font-size: 0.85rem;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .timeline-movie-end {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .timeline-arrow {
+            color: #ccc;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .timeline-gap {
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            color: #92400e;
+            flex-shrink: 0;
+        }
+
+        .timeline-summary {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            gap: 24px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .timeline-summary strong {
+            color: #333;
+        }
+
+        /* Theater info */
+        .theater-info {
+            display: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .theater-info.visible {
+            display: block;
+        }
+
+        .theater-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .theater-date {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .header {
+                flex-wrap: wrap;
+            }
+
+            .main-content.visible {
+                flex-direction: column;
+            }
+
+            .movies-section {
+                width: 100%;
+                max-height: 300px;
+                position: static;
+            }
+
+            .movies-grid {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+
+            .movie-card {
+                flex: 1 1 200px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 16px;
+            }
+
+            .header {
+                gap: 12px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .controls {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .timeline-movies {
+                flex-direction: column;
+            }
+
+            .timeline-arrow {
+                transform: rotate(90deg);
+            }
+
+            .timeline-summary {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <h1>HopScreen</h1>
+                <p class="subtitle">Plan your movie marathon</p>
+            </div>
+            <div class="theater-info" id="theater-info">
+                <div class="theater-name" id="theater-name"></div>
+                <div class="theater-date" id="theater-date"></div>
+            </div>
+            <div class="controls" id="controls">
+                <div class="control-group">
+                    <label for="max-gap">Max gap:</label>
+                    <input type="number" id="max-gap" value="30" min="0" max="120"> min
+                </div>
+                <label class="checkbox-group">
+                    <input type="checkbox" id="allow-subsets">
+                    <span>Partial matches</span>
+                </label>
+                <button class="clear-btn" id="clear-selection">Clear</button>
+            </div>
+        </div>
+
+        <div class="upload-section" id="upload-section">
+            <div class="upload-icon">📽️</div>
+            <p class="upload-text">Drop a Fandango theater HTML file here</p>
+            <p class="upload-hint">or click to browse</p>
+            <input type="file" id="file-input" accept=".html,.htm">
+        </div>
+
+        <div class="main-content" id="main-content">
+            <div class="movies-section" id="movies-section">
+                <h2 class="section-title">Movies</h2>
+                <div class="movies-grid" id="movies-grid"></div>
+            </div>
+
+            <div class="timelines-section" id="timelines-section">
+                <div class="timelines-header">
+                    <h2 class="section-title">Timelines</h2>
+                    <span class="timeline-count" id="timeline-count"></span>
+                </div>
+                <div id="timelines-container">
+                    <div class="timelines-placeholder">Select movies to see available marathon timelines</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let movies = [];
+        let selectedMovies = new Set();
+        let theaterName = '';
+        let theaterDate = '';
+
+        // DOM Elements
+        const uploadSection = document.getElementById('upload-section');
+        const fileInput = document.getElementById('file-input');
+        const theaterInfo = document.getElementById('theater-info');
+        const theaterNameEl = document.getElementById('theater-name');
+        const theaterDateEl = document.getElementById('theater-date');
+        const controls = document.getElementById('controls');
+        const mainContent = document.getElementById('main-content');
+        const moviesSection = document.getElementById('movies-section');
+        const moviesGrid = document.getElementById('movies-grid');
+        const timelinesSection = document.getElementById('timelines-section');
+        const timelinesContainer = document.getElementById('timelines-container');
+        const timelineCount = document.getElementById('timeline-count');
+        const maxGapInput = document.getElementById('max-gap');
+        const allowSubsetsCheckbox = document.getElementById('allow-subsets');
+        const clearSelectionBtn = document.getElementById('clear-selection');
+
+        // Event Listeners
+        uploadSection.addEventListener('click', () => fileInput.click());
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) processFile(file);
+        });
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) processFile(file);
+        });
+        maxGapInput.addEventListener('change', updateTimelines);
+        allowSubsetsCheckbox.addEventListener('change', updateTimelines);
+        clearSelectionBtn.addEventListener('click', clearSelection);
+
+        // Process uploaded file
+        function processFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const html = e.target.result;
+                parseHTML(html);
+            };
+            reader.readAsText(file);
+        }
+
+        // Parse Fandango HTML
+        function parseHTML(html) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            // Extract theater name
+            const titleEl = doc.querySelector('#page-title');
+            if (titleEl) {
+                const titleText = titleEl.textContent;
+                const match = titleText.match(/^(.+?)\s+Movie Showtimes/);
+                if (match) {
+                    theaterName = match[1].trim();
+                }
+            }
+
+            // Extract movies
+            movies = [];
+            const movieElements = doc.querySelectorAll('.shared-movie-showtimes');
+
+            movieElements.forEach(movieEl => {
+                const titleLink = movieEl.querySelector('.shared-movie-showtimes__movie-title-link');
+                const title = titleLink ? titleLink.textContent.trim() : '';
+
+                // Extract runtime
+                const dataText = movieEl.querySelector('.shared-showtimes__movie-data');
+                let runtimeMinutes = 120; // default
+                if (dataText) {
+                    const runtimeText = dataText.textContent;
+                    const hrMatch = runtimeText.match(/(\d+)\s*hr/);
+                    const minMatch = runtimeText.match(/(\d+)\s*min/);
+                    runtimeMinutes = (hrMatch ? parseInt(hrMatch[1]) * 60 : 0) + (minMatch ? parseInt(minMatch[1]) : 0);
+                }
+
+                // Extract showtimes (both available and expired)
+                const showtimes = [];
+                const showtimeButtons = movieEl.querySelectorAll('.showtime-btn');
+                showtimeButtons.forEach(btn => {
+                    const href = btn.getAttribute('href');
+                    if (href) {
+                        // Available showtime - has href with sdate
+                        const sdateMatch = href.match(/sdate=([^&]+)/);
+                        if (sdateMatch) {
+                            const sdate = decodeURIComponent(sdateMatch[1]);
+                            // Format: 2026-02-02+21:00
+                            const parts = sdate.split('+');
+                            if (parts.length === 2) {
+                                const date = parts[0];
+                                const time = parts[1];
+                                if (!theaterDate) theaterDate = date;
+
+                                const timeDisplay = btn.textContent.trim();
+                                showtimes.push({
+                                    date,
+                                    time,
+                                    display: timeDisplay,
+                                    minutes: timeToMinutes(time)
+                                });
+                            }
+                        }
+                    } else {
+                        // Expired showtime - parse time from aria-label
+                        const ariaLabel = btn.getAttribute('aria-label');
+                        if (ariaLabel) {
+                            const timeInfo = parseAriaLabelTime(ariaLabel);
+                            if (timeInfo) {
+                                showtimes.push({
+                                    date: theaterDate || '',
+                                    time: timeInfo.time24,
+                                    display: timeInfo.display,
+                                    minutes: timeInfo.minutes
+                                });
+                            }
+                        }
+                    }
+                });
+
+                if (title && showtimes.length > 0) {
+                    movies.push({
+                        id: movieEl.id || `movie-${movies.length}`,
+                        title,
+                        runtime: runtimeMinutes,
+                        runtimeDisplay: formatRuntime(runtimeMinutes),
+                        showtimes: showtimes.sort((a, b) => a.minutes - b.minutes)
+                    });
+                }
+            });
+
+            if (movies.length > 0) {
+                displayMovies();
+            } else {
+                alert('No movies found in the uploaded file. Please make sure it\'s a valid Fandango theater page.');
+            }
+        }
+
+        // Convert time string to minutes since midnight
+        function timeToMinutes(time) {
+            const [hours, mins] = time.split(':').map(Number);
+            return hours * 60 + mins;
+        }
+
+        // Parse time from aria-label like "1:15 PM showtime" or "5 o'clock PM showtime"
+        function parseAriaLabelTime(ariaLabel) {
+            // Match patterns like "1:15 PM", "5 o'clock PM", "10:30 PM"
+            let match = ariaLabel.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+            if (match) {
+                let hours = parseInt(match[1]);
+                const mins = parseInt(match[2]);
+                const period = match[3].toUpperCase();
+
+                if (period === 'PM' && hours !== 12) hours += 12;
+                if (period === 'AM' && hours === 12) hours = 0;
+
+                const minutes = hours * 60 + mins;
+                const time24 = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+                const displayHour = hours % 12 || 12;
+                const display = `${displayHour}:${mins.toString().padStart(2, '0')}${period.toLowerCase()[0]}`;
+
+                return { time24, display, minutes };
+            }
+
+            // Match "X o'clock PM/AM" pattern
+            match = ariaLabel.match(/(\d{1,2})\s*o'clock\s*(AM|PM)/i);
+            if (match) {
+                let hours = parseInt(match[1]);
+                const period = match[2].toUpperCase();
+
+                if (period === 'PM' && hours !== 12) hours += 12;
+                if (period === 'AM' && hours === 12) hours = 0;
+
+                const minutes = hours * 60;
+                const time24 = `${hours.toString().padStart(2, '0')}:00`;
+                const displayHour = hours % 12 || 12;
+                const display = `${displayHour}:00${period.toLowerCase()[0]}`;
+
+                return { time24, display, minutes };
+            }
+
+            return null;
+        }
+
+        // Convert minutes to time string
+        function minutesToTime(minutes) {
+            const hours = Math.floor(minutes / 60) % 24;
+            const mins = minutes % 60;
+            const period = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12;
+            return `${displayHours}:${mins.toString().padStart(2, '0')} ${period}`;
+        }
+
+        // Format runtime for display
+        function formatRuntime(minutes) {
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            if (hours > 0 && mins > 0) {
+                return `${hours}h ${mins}m`;
+            } else if (hours > 0) {
+                return `${hours}h`;
+            } else {
+                return `${mins}m`;
+            }
+        }
+
+        // Display movies
+        function displayMovies() {
+            // Show sections
+            theaterInfo.classList.add('visible');
+            controls.classList.add('visible');
+            mainContent.classList.add('visible');
+            uploadSection.style.display = 'none';
+
+            // Update theater info
+            theaterNameEl.textContent = theaterName;
+            if (theaterDate) {
+                const dateObj = new Date(theaterDate + 'T12:00:00');
+                theaterDateEl.textContent = dateObj.toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            }
+
+            // Render movie cards
+            moviesGrid.innerHTML = movies.map(movie => `
+                <div class="movie-card" data-movie-id="${movie.id}" onclick="toggleMovie('${movie.id}')">
+                    <div class="movie-title" title="${escapeHtml(movie.title)}">${escapeHtml(movie.title)}</div>
+                    <div class="movie-meta">
+                        <span>${movie.runtimeDisplay}</span>
+                        <span>${movie.showtimes.length} time${movie.showtimes.length !== 1 ? 's' : ''}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Toggle movie selection
+        function toggleMovie(movieId) {
+            if (selectedMovies.has(movieId)) {
+                selectedMovies.delete(movieId);
+            } else {
+                selectedMovies.add(movieId);
+            }
+            updateMovieCards();
+            updateTimelines();
+        }
+
+        // Update movie card styles
+        function updateMovieCards() {
+            const cards = document.querySelectorAll('.movie-card');
+            let selectionIndex = 1;
+            const selectionOrder = Array.from(selectedMovies);
+
+            cards.forEach(card => {
+                const movieId = card.dataset.movieId;
+                const badge = card.querySelector('.selection-badge');
+
+                if (selectedMovies.has(movieId)) {
+                    card.classList.add('selected');
+                    const order = selectionOrder.indexOf(movieId) + 1;
+                    if (!badge) {
+                        const newBadge = document.createElement('span');
+                        newBadge.className = 'selection-badge';
+                        newBadge.textContent = order;
+                        card.appendChild(newBadge);
+                    } else {
+                        badge.textContent = order;
+                    }
+                } else {
+                    card.classList.remove('selected');
+                    if (badge) badge.remove();
+                }
+            });
+        }
+
+        // Clear selection
+        function clearSelection() {
+            selectedMovies.clear();
+            updateMovieCards();
+            updateTimelines();
+        }
+
+        // Find valid timelines
+        function findTimelines() {
+            const selectedMoviesList = Array.from(selectedMovies).map(id =>
+                movies.find(m => m.id === id)
+            ).filter(Boolean);
+
+            if (selectedMoviesList.length === 0) {
+                return [];
+            }
+
+            const maxGap = parseInt(maxGapInput.value) || 30;
+            const allowSubsets = allowSubsetsCheckbox.checked;
+
+            // Generate all permutations of movies to watch
+            function getPermutations(arr) {
+                if (arr.length <= 1) return [arr];
+                const result = [];
+                for (let i = 0; i < arr.length; i++) {
+                    const rest = [...arr.slice(0, i), ...arr.slice(i + 1)];
+                    const perms = getPermutations(rest);
+                    for (const perm of perms) {
+                        result.push([arr[i], ...perm]);
+                    }
+                }
+                return result;
+            }
+
+            // Generate all subsets of size >= 1
+            function getSubsets(arr) {
+                const result = [];
+                const n = arr.length;
+                for (let mask = 1; mask < (1 << n); mask++) {
+                    const subset = [];
+                    for (let i = 0; i < n; i++) {
+                        if (mask & (1 << i)) {
+                            subset.push(arr[i]);
+                        }
+                    }
+                    result.push(subset);
+                }
+                // Sort by size descending
+                return result.sort((a, b) => b.length - a.length);
+            }
+
+            const timelines = [];
+            const moviesToCheck = allowSubsets ? getSubsets(selectedMoviesList) : [selectedMoviesList];
+
+            for (const movieSet of moviesToCheck) {
+                if (movieSet.length === 0) continue;
+
+                const permutations = getPermutations(movieSet);
+
+                for (const ordering of permutations) {
+                    // Try all combinations of showtimes
+                    const showtimeCombos = cartesianProduct(ordering.map(m => m.showtimes));
+
+                    for (const combo of showtimeCombos) {
+                        if (isValidTimeline(ordering, combo, maxGap)) {
+                            const timeline = ordering.map((movie, i) => ({
+                                movie,
+                                showtime: combo[i],
+                                endMinutes: combo[i].minutes + movie.runtime
+                            }));
+
+                            // Calculate gaps
+                            const gaps = [];
+                            for (let i = 0; i < timeline.length - 1; i++) {
+                                gaps.push(timeline[i + 1].showtime.minutes - timeline[i].endMinutes);
+                            }
+
+                            timelines.push({
+                                entries: timeline,
+                                gaps,
+                                movieCount: ordering.length,
+                                startTime: combo[0].minutes,
+                                endTime: combo[combo.length - 1].minutes + ordering[ordering.length - 1].runtime,
+                                totalGap: gaps.reduce((a, b) => a + b, 0)
+                            });
+                        }
+                    }
+                }
+            }
+
+            // Remove duplicates and sort
+            const uniqueTimelines = removeDuplicateTimelines(timelines);
+            return uniqueTimelines.sort((a, b) => {
+                // Sort by movie count (desc), then by start time (asc)
+                if (a.movieCount !== b.movieCount) return b.movieCount - a.movieCount;
+                return a.startTime - b.startTime;
+            });
+        }
+
+        // Cartesian product of arrays
+        function cartesianProduct(arrays) {
+            if (arrays.length === 0) return [[]];
+            if (arrays.length === 1) return arrays[0].map(x => [x]);
+
+            return arrays.reduce((acc, arr) => {
+                const result = [];
+                for (const combo of acc) {
+                    for (const item of arr) {
+                        result.push([...combo, item]);
+                    }
+                }
+                return result;
+            }, [[]]);
+        }
+
+        // Check if timeline is valid (movies don't overlap and gaps are within limit)
+        function isValidTimeline(movies, showtimes, maxGap) {
+            for (let i = 0; i < movies.length - 1; i++) {
+                const endTime = showtimes[i].minutes + movies[i].runtime;
+                const nextStart = showtimes[i + 1].minutes;
+                const gap = nextStart - endTime;
+
+                // Movie must end before next one starts
+                if (gap < 0) return false;
+
+                // Gap must be within limit
+                if (gap > maxGap) return false;
+            }
+            return true;
+        }
+
+        // Remove duplicate timelines
+        function removeDuplicateTimelines(timelines) {
+            const seen = new Set();
+            return timelines.filter(timeline => {
+                const key = timeline.entries.map(e =>
+                    `${e.movie.id}-${e.showtime.time}`
+                ).join('|');
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
+        }
+
+        // Update timelines display
+        function updateTimelines() {
+            if (selectedMovies.size === 0) {
+                timelinesContainer.innerHTML = `
+                    <div class="timelines-placeholder">Select movies to see available marathon timelines</div>
+                `;
+                timelineCount.textContent = '';
+                return;
+            }
+
+            const timelines = findTimelines();
+
+            if (timelines.length === 0) {
+                timelinesContainer.innerHTML = `
+                    <div class="no-timelines">
+                        No valid timelines found with current settings.<br>
+                        Try increasing the maximum gap time or selecting different movies.
+                    </div>
+                `;
+                timelineCount.textContent = '';
+            } else {
+                timelineCount.textContent = `${timelines.length} option${timelines.length !== 1 ? 's' : ''}`;
+                timelinesContainer.innerHTML = `
+                    <div class="timeline-list">
+                        ${timelines.map(timeline => renderTimeline(timeline)).join('')}
+                    </div>
+                `;
+            }
+        }
+
+        // Render a single timeline
+        function renderTimeline(timeline) {
+            const moviesHtml = timeline.entries.map((entry, i) => {
+                const movieHtml = `
+                    <div class="timeline-movie">
+                        <div class="timeline-movie-title">${escapeHtml(entry.movie.title)}</div>
+                        <div class="timeline-movie-time">${entry.showtime.display}</div>
+                        <div class="timeline-movie-end">Ends ~${minutesToTime(entry.endMinutes)}</div>
+                    </div>
+                `;
+
+                if (i < timeline.entries.length - 1) {
+                    const gap = timeline.gaps[i];
+                    return movieHtml + `
+                        <span class="timeline-arrow">→</span>
+                        <span class="timeline-gap">${gap}m gap</span>
+                        <span class="timeline-arrow">→</span>
+                    `;
+                }
+                return movieHtml;
+            }).join('');
+
+            const totalDuration = timeline.endTime - timeline.startTime;
+            const totalHours = Math.floor(totalDuration / 60);
+            const totalMins = totalDuration % 60;
+
+            return `
+                <div class="timeline-card">
+                    <div class="timeline-movies">
+                        ${moviesHtml}
+                    </div>
+                    <div class="timeline-summary">
+                        <span><strong>${timeline.movieCount}</strong> movie${timeline.movieCount !== 1 ? 's' : ''}</span>
+                        <span><strong>${minutesToTime(timeline.startTime)}</strong> to <strong>${minutesToTime(timeline.endTime)}</strong></span>
+                        <span>Total: <strong>${totalHours > 0 ? totalHours + 'h ' : ''}${totalMins}m</strong></span>
+                        ${timeline.totalGap > 0 ? `<span>Wait time: <strong>${timeline.totalGap}m</strong></span>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
